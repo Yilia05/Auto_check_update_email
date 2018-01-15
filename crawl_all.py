@@ -6,6 +6,9 @@ import collections
 import logging
 import shutil
 import csv
+from datetime import time
+from socket import error as SocketError
+import errno
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO, filename='update_check.log')
 LOG = logging.getLogger(__name__)
@@ -55,8 +58,13 @@ def getNodeData(az, tenant):
     request.add_header('user', 'a')
     request.add_header('tenant', tenant)
     request.add_header('token', 'a')
-    response = urllib2.urlopen(request).read()
-    data = json.loads(response)
+    LOG.info(request.headers)
+    try:
+        response = urllib2.urlopen(request).read()
+        data = json.loads(response)
+    except SocketError as e:
+        LOG.info(az + e.__str__())
+        data = ''
     return data
 
 
@@ -137,7 +145,6 @@ def writeFile(data, fp, fp1, az_name, vpc_name, cluster_ip_list):
     generate_remain_batch_file(cluster_ip_list, "all_cluster_ip_list", order_cluster_dict)
 
 
-
 def crawl_nodes(az_name, vpc):
     key_ten = vpc
     cluster_ip_list = cwd + "/" + vpc + "_" + az_name
@@ -165,3 +172,4 @@ if __name__ == '__main__':
     for vpc_name in vpc_list:
         for az_name in az_list:
             crawl_nodes(az_name, vpc_name)
+            time.sleep(0.5)

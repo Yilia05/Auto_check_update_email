@@ -7,7 +7,7 @@ import logging
 from functools import partial
 from multiprocessing.pool import Pool
 from contextlib import closing
-
+from datetime import datetime
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO, filename='update_check.log')
 LOG = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def get_status_code(az, tenant, node_id):
     request.add_header('token', 'a')
     request.add_header('Accept', 'application/json')
     try:
-        response = urllib2.urlopen(request, timeout=10).read()
+        response = urllib2.urlopen(request, timeout=20).read()
         data = json.loads(response)
         status_code = data['status_code']
         LOG.info(status_code)
@@ -55,7 +55,7 @@ def get_status_code(az, tenant, node_id):
         LOG.info(status_code + ':' + e)
     except socket.timeout as se:
         status_code = 'not pingable'
-        LOG.info(status_code+ ':' + se)
+        LOG.info(status_code + ':' + se)
     return status_code
 
 
@@ -70,7 +70,7 @@ def multipro(az, tenant, id_dic):
     return l
 
 
-def check_solve_status(az, tenant, cluster_ip_list):
+def check_solve_status(az, tenant, cluster_ip_list, check_result_list):
     dic = {}
     LOG.info("start crawl error_node .....")
     with open(cluster_ip_list + "/cluster_ip_list/" + "all_fqdn_id_list", 'rb') as csvfile:
@@ -85,6 +85,8 @@ def check_solve_status(az, tenant, cluster_ip_list):
         for result in result_list:
             if result.__len__() != 0:
                 change_error_result_file(cluster_ip_list, "error_fqdn_list", result[0])
+                change_error_result_file(check_result_list, "error_fqdn_list_" +
+                                         (datetime.today().weekday() + 1).__str__(), result[0])
                 change_error_result_file(cluster_ip_list, "error_fqdn_status_list",
                                          result[0] + ' ' + result[1] + ' error_code ' + result[2])
 
@@ -97,4 +99,11 @@ if __name__ == '__main__':
         for az_name in az_list:
             line_ten = get_tenant(str(vpc_name).strip())
             cluster_ip_list = cwd + "/" + vpc_name + "_" + az_name
-            check_solve_status(az_name, str(line_ten).strip(), cluster_ip_list)
+            check_result_list = cwd + "/" + "check_result_list" + "/" + vpc_name + "_" + az_name
+            if not os.path.exists(check_result_list + "/cluster_ip_list/"):
+                os.makedirs(check_result_list)
+                os.makedirs(check_result_list + "/cluster_ip_list/")
+            today_err_list = check_result_list + "/cluster_ip_list/" + "error_fqdn_list_" + (datetime.today().weekday() + 1).__str__()
+            if os.path.exists(today_err_list):
+                os.remove(today_err_list)
+            check_solve_status(az_name, str(line_ten).strip(), cluster_ip_list, check_result_list)

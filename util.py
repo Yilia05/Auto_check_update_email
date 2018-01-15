@@ -2,10 +2,9 @@
 def blocks(context):
     blocks = []
     block = []
-    for line in context:
+    for line in context.split('\n'):
         if line.strip():
             block.append(line)
-            print block
         else:
             blocks.append(block)
             block = []
@@ -25,4 +24,5 @@ def to_html(context):
             body += '</td></tr>'
     body += '</table></body></html>'
     return body
+
 

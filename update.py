@@ -100,15 +100,54 @@ def update_file(az_name):
                     append_file(update_result_path + az_name + "/all_err_node", ip)
                 else:
                     LOG.info(env.host + " update file from "+az_name)
-                    put(local_path + 'straas-service/comet.agent/comet/agent/cmd/background.py',
+                    stdoutres = sudo("nl /etc/comet.agent/agent.conf | sed -n '/token_tenant_idp/p'").stdout
+                    if stdoutres == '':
+                        sudo(
+                            "sed -i " + "'" + r'/server_call_high_timeout=60/a\\token_request_body={\\\\"auth\\\\": {\\\\"tenantId\\\\":\\\\"%s\\\\", \\\\"passwordCredentials\\\\":{\\\\"username\\\\":\\\\"%s\\\\", \\\\"password\\\\":\\\\"%s\\\\"}}}\\ntoken_auth_url=https://os-identity.vip.ebayc3.com/v2.0/tokens\\ntoken_tenant_id=04630f88baae46f49424ee0af315d769' + "'" + " /etc/comet.agent/agent.conf")
+# sudo (r'sed -i "/server_call_high_timeout=60/a\token_request_body={\\\\\"auth\\\\\": {\"tenantId\":\"%s\", \"passwordCredentials\":{\"username\":\"%s\", \"password\":\"%s\"}}}\ntoken_auth_url=https://os-identity.vip.ebayc3.com/v2.0/tokens\ntoken_tenant_id=04630f88baae46f49424ee0af315d769" /etc/comet.agent/agent.conf')
 
+                    put(local_path + 'straas-service/comet.agent/comet/agent/cmd/background.py',
                         '/home/comet/rheos.straas/straas-service/comet.agent/comet/agent/cmd', use_sudo=True)
                     put(local_path + 'straas-service/comet.agent/comet/agent/api/taskmanager.py',
                         '/home/comet/rheos.straas/straas-service/comet.agent/comet/agent/api', use_sudo=True)
                     put(local_path + 'straas-service/comet.agent/comet/agent/common/utils.py',
                         '/home/comet/rheos.straas/straas-service/comet.agent/comet/agent/common', use_sudo=True)
+                    put(local_path + 'straas-service/comet.agent/comet/agent/common/cfg.py',
+                        '/home/comet/rheos.straas/straas-service/comet.agent/comet/agent/common', use_sudo=True)
                     put(local_path + 'straas-service/comet.agent/comet/agent/manager/manager.py',
                         '/home/comet/rheos.straas/straas-service/comet.agent/comet/agent/manager', use_sudo=True)
+
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/config.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/fs/fs_handler.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common/fs', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/git/git_handler.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common/git', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/guest/client/api.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common/guest/client', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/orc/nova/orc_nova.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common/orc/nova', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/udns/udnsclient.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common/udns', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/wsgi.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/init/inst.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/init', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/taskmanager/api.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/taskmanager', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/taskmanager/background.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/taskmanager', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.server/comet/straas/taskmanager/api.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.server/comet/straas/taskmanager', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.server/comet/straas/taskmanager/manager.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.server/comet/straas/taskmanager', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.server/comet/straas/web/api.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.server/comet/straas/web', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.server/comet/straas/web/service.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.server/comet/straas/web', use_sudo=True)
+                    # put(local_path + 'straas-service/comet.core/comet/core/common/orc/nova/orc_nova.py',
+                    #     '/home/comet/rheos.straas/straas-service/comet.core/comet/core/common/orc/nova', use_sudo=True)
+
                     put(local_path + 'agent/api_key', '/home/straas', use_sudo=True)
                     put(local_path + 'agent/api_secret', '/home/straas', use_sudo=True)
                     put(local_path + 'script/restartService.sh', node_root_path, use_sudo=True)
